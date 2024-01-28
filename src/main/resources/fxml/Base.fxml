@@ -1,16 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
-
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="gui.Controller">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-    </padding>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-    <Label fx:id="welcomeText"/>
-    <Button text="Hello!" onAction="#onHelloButtonClick"/>
-</VBox>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="608.0" prefWidth="872.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.Controller">
+   <children>
+      <Button layoutX="15.0" layoutY="14.0" mnemonicParsing="false" onMouseClicked="#chooseFileButtonClicked" text="Choose file">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Label fx:id="filePreview" layoutX="96.0" layoutY="18.0" />
+      <Button fx:id="uploadFileButton" layoutX="16.0" layoutY="52.0" mnemonicParsing="false" onMouseClicked="#uploadFileButtonClicked" text="Upload file">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <AnchorPane layoutY="88.0" prefHeight="520.0" prefWidth="872.0">
+         <children>
+            <TreeView fx:id="projectTreeView" onContextMenuRequested="#selectUnit" onMouseClicked="#selectUnit" prefHeight="520.0" prefWidth="228.0" style="-fx-border-color: black;" />
+            <AnchorPane layoutX="228.0" layoutY="50.0" prefHeight="470.0" prefWidth="340.0">
+               <children>
+                  <ListView fx:id="testCaseListView" prefHeight="470.0" prefWidth="340.0" style="-fx-border-color: black;" />
+                  <AnchorPane layoutY="-50.0" prefHeight="51.0" prefWidth="340.0" style="-fx-border-color: black;">
+                     <children>
+                        <ChoiceBox fx:id="coverageChoiceBox" layoutX="44.0" layoutY="12.0" prefHeight="26.0" prefWidth="154.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </ChoiceBox>
+                        <Button fx:id="generateButton" layoutX="220.0" layoutY="12.0" mnemonicParsing="false" onMouseClicked="#generateButtonClicked" prefHeight="26.0" prefWidth="75.0" text="Generate">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </Button>
+                     </children>
+                  </AnchorPane>
+               </children>
+            </AnchorPane>
+            <VBox fx:id="testCaseDetailVBox" layoutX="568.0" prefHeight="520.0" prefWidth="304.0" style="-fx-border-color: black;">
+               <children>
+                  <Label fx:id="testCaseIDLabel" prefHeight="50.0" prefWidth="302.0" text="   Test case ID:" />
+                  <Label fx:id="functionStatementCoverageLabel" prefHeight="50.0" prefWidth="302.0" text="   Function statement coverage:" />
+                  <Label fx:id="requireCoverageLabel" prefHeight="50.0" prefWidth="302.0" text="   Required coverage:" />
+                  <Label fx:id="executeTimeLabel" prefHeight="50.0" prefWidth="302.0" text="   Execute time:" />
+                  <Label fx:id="outputLabel" prefHeight="50.0" prefWidth="302.0" text="   Output:" />
+                  <Label fx:id="statusLabel" prefHeight="50.0" prefWidth="302.0" text="   Status:" />
+                  <Label prefHeight="23.0" prefWidth="302.0" text=" Generated test data:" />
+                  <ListView fx:id="generatedTestDataListView" prefHeight="192.0" prefWidth="302.0" />
+               </children>
+            </VBox>
+         </children>
+      </AnchorPane>
+      <Label fx:id="errorAlertLabel" layoutX="96.0" layoutY="56.0" textFill="RED">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>
