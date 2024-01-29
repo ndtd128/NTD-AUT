@@ -5,7 +5,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -100,7 +105,7 @@ public class Controller implements Initializable {
             @Override
             public void changed(ObservableValue<? extends ConcolicTestData> observableValue, ConcolicTestData concolicTestData, ConcolicTestData t1) {
                 ConcolicTestData testData = testCaseListView.getSelectionModel().getSelectedItem();
-                if(testData != null) {
+                if (testData != null) {
                     setTestCaseDetail(testData);
                     testCaseDetailVBox.setDisable(false);
                 }
@@ -111,7 +116,7 @@ public class Controller implements Initializable {
     @FXML
     void chooseFileButtonClicked(MouseEvent event) {
         choseFile = fileChooser.showOpenDialog(new Stage());
-        if(choseFile != null) {
+        if (choseFile != null) {
             filePreview.setText(choseFile.getAbsolutePath());
             uploadFileButton.setDisable(false);
         }
@@ -120,22 +125,23 @@ public class Controller implements Initializable {
     @FXML
     void uploadFileButtonClicked(MouseEvent event) throws IOException, InterruptedException {
         reset();
-        try {
-            CloneProjectUtil.deleteFilesInDirectory("\\NTD-AUT\\src\\main\\uploadedProject");
-            UploadUtil.javaUnzipFile(choseFile.getPath(), "\\NTD-AUT\\src\\main\\uploadedProject");
+//        try {
 
-            String javaDirPath = CloneProjectUtil.getJavaDirPath("\\NTD-AUT\\src\\main\\uploadedProject");
-            if(javaDirPath.equals("")) throw new RuntimeException("Invalid project");
+        CloneProjectUtil.deleteFilesInDirectory("./src/main/uploadedProject");
+        UploadUtil.javaUnzipFile(choseFile.getPath(), "./src/main/uploadedProject");
 
-            Folder folder = CloneProjectUtil.cloneProject(javaDirPath, "\\NTD-AUT\\src\\main\\java\\clonedProject");
+        String javaDirPath = CloneProjectUtil.getJavaDirPath("./src/main/uploadedProject");
+        if (javaDirPath.equals("")) throw new RuntimeException("Invalid project");
 
-            TreeItem<ProjectTreeObject> rootFolder = switchToTreeItem(folder);
+        Folder folder = CloneProjectUtil.cloneProject(javaDirPath, "./src/main/java/clonedProject");
 
-            projectTreeView.setRoot(rootFolder);
-            errorAlertLabel.setText("");
-        } catch (Exception e) {
-            errorAlertLabel.setText("INVALID PROJECT ZIP FILE (eg: not a zip file, project's source code contains cases we haven't handled, ...)");
-        }
+        TreeItem<ProjectTreeObject> rootFolder = switchToTreeItem(folder);
+
+        projectTreeView.setRoot(rootFolder);
+        errorAlertLabel.setText("");
+//        } catch (Exception e) {
+//            errorAlertLabel.setText("INVALID PROJECT ZIP FILE (eg: not a zip file, project's source code contains cases we haven't handled, ...)");
+//        }
     }
 
     private void reset() {
@@ -160,7 +166,7 @@ public class Controller implements Initializable {
     }
 
     private TreeItem<ProjectTreeObject> switchToTreeItem(ProjectTreeObject treeObject) {
-        if(treeObject instanceof Folder) {
+        if (treeObject instanceof Folder) {
             TreeItem<ProjectTreeObject> item = new TreeItem<>(treeObject, new ImageView(new Image("\\img\\folder_icon.png")));
             List<ProjectTreeObject> children = ((Folder) treeObject).getChildren();
             for (ProjectTreeObject child : children) {
@@ -180,11 +186,12 @@ public class Controller implements Initializable {
             throw new RuntimeException("Invalid ProjectTreeObject");
         }
     }
+
     @FXML
     void selectUnit(MouseEvent event) {
         TreeItem<ProjectTreeObject> selectedItem = projectTreeView.getSelectionModel().getSelectedItem();
 
-        if(selectedItem != null) {
+        if (selectedItem != null) {
             ProjectTreeObject treeObject = selectedItem.getValue();
             if (treeObject instanceof Unit) {
                 choseUnit = (Unit) treeObject;
@@ -204,7 +211,7 @@ public class Controller implements Initializable {
         generateButton.setDisable(false);
 
         String coverage = coverageChoiceBox.getValue();
-        if(coverage.equals("Statement coverage")) {
+        if (coverage.equals("Statement coverage")) {
             choseCoverage = Coverage.STATEMENT;
         } else if (coverage.equals("Branch coverage")) {
             choseCoverage = Coverage.BRANCH;

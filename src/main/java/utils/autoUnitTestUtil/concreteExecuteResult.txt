@@ -1,6 +1,0 @@
-double resultCost=0.5 * callDuration;
-===false===false---end---startTime >= 18===false===true---end---startTime < 8===true===false---end---resultCost=resultCost / 2;
-===false===false---end---callDuration > 60===true===false---end---resultCost-=(resultCost * 15.0 / 100);
-===false===false---end---resultCost+=(resultCost * 5.0 / 100);
-===false===false---end---return resultCost;
-===false===false---end---
