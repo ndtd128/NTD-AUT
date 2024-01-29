@@ -1,5 +1,7 @@
 package utils.cloneProjectUtil;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.*;
+import utils.FilePath;
 import utils.cloneProjectUtil.projectTreeObjects.Folder;
 import utils.cloneProjectUtil.projectTreeObjects.JavaFile;
 import utils.cloneProjectUtil.projectTreeObjects.ProjectTreeObject;
@@ -8,6 +10,8 @@ import utils.cloneProjectUtil.projectTreeObjects.Unit;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -44,9 +48,10 @@ public final class CloneProjectUtil {
     }
 
     public static Folder cloneProject(String originalDirPath, String destinationDirPath) throws IOException, InterruptedException {
-        command = new StringBuilder("javac -d \\NTD-AUT\\target\\classes ");
+        command = new StringBuilder("javac -d " + FilePath.targetClassesFolderPath + " ");
         Folder rootFolder = new Folder("java");
         iCloneProject(originalDirPath, destinationDirPath, rootFolder);
+        System.out.println(command);
 
         Process p = Runtime.getRuntime().exec(command.toString());
         System.out.println(p.waitFor());
@@ -94,19 +99,24 @@ public final class CloneProjectUtil {
         File directory = new File(directoryPath);
 
         if (!directory.isDirectory()) {
-            throw new RuntimeException("Invalid Dir");
+            throw new RuntimeException("Invalid Dir: " + directory.getPath());
         }
 
         return directory.listFiles();
     }
 
-    public static void deleteFilesInDirectory(String directoryPath) {
-        File[] files = getFilesInDirectory(directoryPath);
-        for (File file : files) {
-            if (file.isDirectory()) {
-                deleteFilesInDirectory(file.getPath());
-            }
-            file.delete();
+    public static void deleteFilesInDirectory(String directoryPath) throws IOException {
+//        File[] files = getFilesInDirectory(directoryPath);
+//        for (File file : files) {
+//            if (file.isDirectory()) {
+//                deleteFilesInDirectory(file.getPath());
+//            }
+//            file.delete();
+//        }
+        if(Files.exists(Path.of(directoryPath))) {
+            FileUtils.cleanDirectory(new File(directoryPath));
+        } else {
+            FileUtils.forceMkdir(new File(directoryPath));
         }
     }
 
@@ -204,7 +214,7 @@ public final class CloneProjectUtil {
                 "markResult.append(statement).append(\"===\");\n" +
                 "markResult.append(isTrueCondition).append(\"===\");\n" +
                 "markResult.append(isFalseCondition).append(\"---end---\");\n" +
-                "writeDataToFile(markResult.toString(), \"\\\\NTD-AUT\\\\src\\\\main\\\\java\\\\utils\\\\autoUnitTestUtil\\\\concreteExecuteResult.txt\", true);\n" +
+                "writeDataToFile(markResult.toString(), \"" + "src/main/java/utils/autoUnitTestUtil/concreteExecuteResult.txt" + "\", true);\n" +
                 "if (!isTrueCondition && !isFalseCondition) return true;\n" +
                 "return !isFalseCondition;\n" +
                 "}\n");

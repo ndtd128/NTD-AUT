@@ -17,6 +17,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import utils.FilePath;
 import utils.UploadUtil;
 import utils.autoUnitTestUtil.ConcolicTesting;
 import utils.autoUnitTestUtil.concolicResult.ConcolicParameterData;
@@ -125,23 +126,23 @@ public class Controller implements Initializable {
     @FXML
     void uploadFileButtonClicked(MouseEvent event) throws IOException, InterruptedException {
         reset();
-//        try {
+        try {
 
-        CloneProjectUtil.deleteFilesInDirectory("./src/main/uploadedProject");
-        UploadUtil.javaUnzipFile(choseFile.getPath(), "./src/main/uploadedProject");
+        CloneProjectUtil.deleteFilesInDirectory(FilePath.uploadedProjectPath);
+        UploadUtil.javaUnzipFile(choseFile.getPath(), FilePath.uploadedProjectPath);
 
-        String javaDirPath = CloneProjectUtil.getJavaDirPath("./src/main/uploadedProject");
+        String javaDirPath = CloneProjectUtil.getJavaDirPath(FilePath.uploadedProjectPath);
         if (javaDirPath.equals("")) throw new RuntimeException("Invalid project");
 
-        Folder folder = CloneProjectUtil.cloneProject(javaDirPath, "./src/main/java/clonedProject");
+        Folder folder = CloneProjectUtil.cloneProject(javaDirPath, FilePath.clonedProjectPath);
 
         TreeItem<ProjectTreeObject> rootFolder = switchToTreeItem(folder);
 
         projectTreeView.setRoot(rootFolder);
         errorAlertLabel.setText("");
-//        } catch (Exception e) {
-//            errorAlertLabel.setText("INVALID PROJECT ZIP FILE (eg: not a zip file, project's source code contains cases we haven't handled, ...)");
-//        }
+        } catch (Exception e) {
+            errorAlertLabel.setText("INVALID PROJECT ZIP FILE (eg: not a zip file, project's source code contains cases we haven't handled, ...)");
+        }
     }
 
     private void reset() {

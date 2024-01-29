@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import utils.FilePath;
 import utils.cloneProjectUtil.CloneProjectUtil;
 
 import java.io.IOException;
@@ -22,6 +23,6 @@ public class Main extends Application {
 
     public static void main(String[] args) throws IOException {
         launch();
-        CloneProjectUtil.deleteFilesInDirectory("\\NTD-AUT\\src\\main\\java\\clonedProject");
+        CloneProjectUtil.deleteFilesInDirectory(FilePath.clonedProjectPath);
     }
 }

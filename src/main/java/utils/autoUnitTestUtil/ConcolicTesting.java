@@ -1,5 +1,6 @@
 package utils.autoUnitTestUtil;
 
+import utils.FilePath;
 import utils.autoUnitTestUtil.concolicResult.CoveredStatement;
 import controller.Controller;
 import utils.autoUnitTestUtil.concolicResult.ConcolicTestData;
@@ -88,7 +89,7 @@ public class ConcolicTesting {
         int testCaseID = 1;
         Object[] evaluatedValues = utils.autoUnitTestUtil.testDriver.Utils.createRandomTestData(parameterClasses);
 
-        writeDataToFile("", ".\\src\\main\\java\\utils\\autoUnitTestUtil\\concreteExecuteResult.txt", false);
+        writeDataToFile("", FilePath.concreteExecuteResultPath, false);
 
         long startRunTestTime = System.nanoTime();
         Object output = method.invoke(parameterClasses, evaluatedValues);
@@ -119,7 +120,7 @@ public class ConcolicTesting {
 
             evaluatedValues = utils.autoUnitTestUtil.testDriver.Utils.getParameterValue(parameterClasses);
 
-            writeDataToFile("", ".\\src\\main\\java\\utils\\autoUnitTestUtil\\concreteExecuteResult.txt", false);
+            writeDataToFile("", FilePath.concreteExecuteResultPath, false);
 
             startRunTestTime = System.nanoTime();
             output = method.invoke(parameterClasses, evaluatedValues);
@@ -148,7 +149,7 @@ public class ConcolicTesting {
     private static List<MarkedStatement> getMarkedStatement() {
         List<MarkedStatement> result = new ArrayList<>();
 
-        String markedData = getDataFromFile(".\\src\\main\\java\\utils\\autoUnitTestUtil\\concreteExecuteResult.txt");
+        String markedData = getDataFromFile(FilePath.concreteExecuteResultPath);
         String[] markedStatements = markedData.split("---end---");
         for (int i = 0; i < markedStatements.length; i++) {
             String[] markedStatementData = markedStatements[i].split("===");

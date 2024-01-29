@@ -1,6 +1,7 @@
 package utils.autoUnitTestUtil.testDriver;
 
 import org.eclipse.jdt.core.dom.*;
+import utils.FilePath;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -138,7 +139,7 @@ public final class Utils {
         Object[] result = new Object[parameterClasses.length];
         Scanner scanner;
         try {
-            scanner = new Scanner(new File("\\NTD-AUT\\src\\main\\java\\utils\\autoUnitTestUtil\\generatedTestData.txt"));
+            scanner = new Scanner(new File(FilePath.generatedTestDataPath));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }

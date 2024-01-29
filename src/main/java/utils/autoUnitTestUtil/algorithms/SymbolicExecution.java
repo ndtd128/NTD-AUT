@@ -1,6 +1,7 @@
 package utils.autoUnitTestUtil.algorithms;
 
 import com.microsoft.z3.*;
+import utils.FilePath;
 import utils.autoUnitTestUtil.ast.AstNode;
 import utils.autoUnitTestUtil.ast.Expression.*;
 import utils.autoUnitTestUtil.ast.Expression.OperationExpression.*;
@@ -158,7 +159,7 @@ public final class SymbolicExecution {
 
     private void writeDataToFile(String data) {
         try {
-            FileWriter writer = new FileWriter("\\NTD-AUT\\src\\main\\java\\utils\\autoUnitTestUtil\\generatedTestData.txt");
+            FileWriter writer = new FileWriter(FilePath.generatedTestDataPath);
             writer.write(data + "\n");
             writer.close();
         } catch(IOException e) {
