@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public final class Parser {
-    static CompilationUnit parseFileToCompilationUnit(String filePath) throws IOException {
+    public static CompilationUnit parseFileToCompilationUnit(String filePath) throws IOException {
         File file = new File(filePath);
 
         CompilationUnit compilationUnit = null;

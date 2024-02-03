@@ -1,11 +1,10 @@
-package utils.autoUnitTestUtil;
+package utils.autoUnitTestUtil.autoTesting;
 
 import utils.FilePath;
 import utils.autoUnitTestUtil.concolicResult.CoveredStatement;
-import controller.Controller;
+import controller.NTDAUTController;
 import utils.autoUnitTestUtil.concolicResult.ConcolicTestData;
 import utils.autoUnitTestUtil.concolicResult.ConcolicTestResult;
-import utils.autoUnitTestUtil.algorithms.FindAllPath;
 import utils.autoUnitTestUtil.algorithms.FindPath;
 import utils.autoUnitTestUtil.algorithms.SymbolicExecution;
 import utils.autoUnitTestUtil.cfg.CfgBlockNode;
@@ -30,7 +29,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class ConcolicTesting {
+public class NTDTesting {
     private static CompilationUnit compilationUnit;
     private static String simpleClassName;
     private static String fullyClonedClassName;
@@ -43,13 +42,13 @@ public class ConcolicTesting {
     private static Method method;
     private static ASTNode testFunc;
 
-    private ConcolicTesting() {
+    private NTDTesting() {
     }
 
     private static long totalUsedMem = 0;
     private static long tickCount = 0;
 
-    public static ConcolicTestResult runFullConcolic(String path, String methodName, String className, Controller.Coverage coverage) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException, NoSuchFieldException, InterruptedException {
+    public static ConcolicTestResult runFullConcolic(String path, String methodName, String className, NTDAUTController.Coverage coverage) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException, NoSuchFieldException, InterruptedException {
 
         setup(path, className, methodName);
         setupCfgTree(coverage);
@@ -74,17 +73,15 @@ public class ConcolicTesting {
         long endRunTestTime = System.nanoTime();
 
         double runTestDuration = (endRunTestTime - startRunTestTime) / 1000000.0;
-
-        System.out.println("run time: " + runTestDuration);
-
         float usedMem = ((float) totalUsedMem) / tickCount / 1024 / 1024;
-        System.out.print("used mem = ");
-        System.out.printf("%.2f", usedMem);
-        System.out.println(" MB");
+
+        result.setTestingTime(runTestDuration);
+        result.setUsedMemory(usedMem);
+
         return result;
     }
 
-    private static ConcolicTestResult startGenerating(Controller.Coverage coverage) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException, NoSuchFieldException {
+    private static ConcolicTestResult startGenerating(NTDAUTController.Coverage coverage) throws InvocationTargetException, IllegalAccessException, ClassNotFoundException, NoSuchFieldException {
         ConcolicTestResult testResult = new ConcolicTestResult();
         int testCaseID = 1;
         Object[] evaluatedValues = utils.autoUnitTestUtil.testDriver.Utils.createRandomTestData(parameterClasses);
@@ -187,7 +184,7 @@ public class ConcolicTesting {
         return result.toString();
     }
 
-    private static CfgNode findUncoverNode(CfgNode cfgNode, Controller.Coverage coverage) {
+    private static CfgNode findUncoverNode(CfgNode cfgNode, NTDAUTController.Coverage coverage) {
         switch (coverage) {
             case STATEMENT:
                 return MarkedPath.findUncoveredStatement(cfgNode);
@@ -207,17 +204,17 @@ public class ConcolicTesting {
     }
 
     private static double calculateFullTestSuiteCoverage() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
-        int totalFunctionStatement = (int) Class.forName(fullyClonedClassName).getField(getTotalFunctionCoverageVariableName((MethodDeclaration) testFunc, Controller.Coverage.STATEMENT)).get(null);
+        int totalFunctionStatement = (int) Class.forName(fullyClonedClassName).getField(getTotalFunctionCoverageVariableName((MethodDeclaration) testFunc, NTDAUTController.Coverage.STATEMENT)).get(null);
         int totalCovered = MarkedPath.getFullTestSuiteTotalCoveredStatements();
         return (totalCovered * 100.0) / totalFunctionStatement;
     }
 
-    private static double calculateRequiredCoverage(Controller.Coverage coverage) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+    private static double calculateRequiredCoverage(NTDAUTController.Coverage coverage) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         int totalFunctionCoverage = (int) Class.forName(fullyClonedClassName).getField(getTotalFunctionCoverageVariableName((MethodDeclaration) testFunc, coverage)).get(null);
         int totalCovered = 0;
-        if (coverage == Controller.Coverage.STATEMENT) {
+        if (coverage == NTDAUTController.Coverage.STATEMENT) {
             totalCovered = MarkedPath.getTotalCoveredStatement();
-        } else if (coverage == Controller.Coverage.BRANCH) {
+        } else if (coverage == NTDAUTController.Coverage.BRANCH) {
             totalCovered = MarkedPath.getTotalCoveredBranch();
             System.out.println(totalCovered);
         }
@@ -225,7 +222,7 @@ public class ConcolicTesting {
     }
 
     private static double calculateFunctionCoverage() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
-        int totalFunctionStatement = (int) Class.forName(fullyClonedClassName).getField(getTotalFunctionCoverageVariableName((MethodDeclaration) testFunc, Controller.Coverage.STATEMENT)).get(null);
+        int totalFunctionStatement = (int) Class.forName(fullyClonedClassName).getField(getTotalFunctionCoverageVariableName((MethodDeclaration) testFunc, NTDAUTController.Coverage.STATEMENT)).get(null);
         int totalCoveredStatement = MarkedPath.getTotalCoveredStatement();
         return (totalCoveredStatement * 100.0) / (totalFunctionStatement * 1.0);
     }
@@ -261,7 +258,7 @@ public class ConcolicTesting {
         fullyClonedClassName = "clonedProject." + packetName + className;
     }
 
-    private static void setupCfgTree(Controller.Coverage coverage) {
+    private static void setupCfgTree(NTDAUTController.Coverage coverage) {
         Block functionBlock = Utils.getFunctionBlock(testFunc);
 
         cfgBeginNode = new CfgNode();
@@ -282,7 +279,7 @@ public class ConcolicTesting {
         ASTHelper.generateCFG(block, compilationUnit, firstLine, getCoverageType(coverage));
     }
 
-    private static ASTHelper.Coverage getCoverageType(Controller.Coverage coverage) {
+    private static ASTHelper.Coverage getCoverageType(NTDAUTController.Coverage coverage) {
         switch (coverage) {
             case STATEMENT:
                 return ASTHelper.Coverage.STATEMENT;
@@ -293,22 +290,29 @@ public class ConcolicTesting {
         }
     }
 
-    private static String getTotalFunctionCoverageVariableName(MethodDeclaration methodDeclaration, Controller.Coverage coverage) {
+    private static String getTotalFunctionCoverageVariableName(MethodDeclaration methodDeclaration, NTDAUTController.Coverage coverage) {
         StringBuilder result = new StringBuilder();
         result.append(methodDeclaration.getReturnType2());
         result.append(methodDeclaration.getName());
         for (int i = 0; i < methodDeclaration.parameters().size(); i++) {
             result.append(methodDeclaration.parameters().get(i));
         }
-        if (coverage == Controller.Coverage.STATEMENT) {
+        if (coverage == NTDAUTController.Coverage.STATEMENT) {
             result.append("TotalStatement");
-        } else if (coverage == Controller.Coverage.BRANCH) {
+        } else if (coverage == NTDAUTController.Coverage.BRANCH) {
             result.append("TotalBranch");
         } else {
             throw new RuntimeException("Invalid Coverage");
         }
 
-        return result.toString().replace(" ", "").replace(".", "");
+        return reformatVariableName(result.toString());
+    }
+
+    private static String reformatVariableName(String name) {
+        return name.replace(" ", "").replace(".", "")
+                .replace("[", "").replace("]", "")
+                .replace("<", "").replace(">", "")
+                .replace(",", "");
     }
 
     private static String getTotalClassCoverageVariableName() {

@@ -1,10 +1,10 @@
-package utils;
+package utils.uploadUtil;
 
 import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public final class UploadUtil {
+public final class NTDUploadUtil {
 
     public static String javaUnzipFile(String Filepath, String DestinationFolderPath) {
         try {

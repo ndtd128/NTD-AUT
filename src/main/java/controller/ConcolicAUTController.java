@@ -15,11 +15,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import utils.FilePath;
-import utils.UploadUtil;
-import utils.autoUnitTestUtil.ConcolicTesting;
+import utils.autoUnitTestUtil.autoTesting.ConcolicTesting;
+import utils.autoUnitTestUtil.autoTesting.NTDTesting;
 import utils.autoUnitTestUtil.concolicResult.ConcolicParameterData;
 import utils.autoUnitTestUtil.concolicResult.ConcolicTestData;
 import utils.autoUnitTestUtil.concolicResult.ConcolicTestResult;
@@ -28,15 +29,15 @@ import utils.cloneProjectUtil.projectTreeObjects.Folder;
 import utils.cloneProjectUtil.projectTreeObjects.JavaFile;
 import utils.cloneProjectUtil.projectTreeObjects.ProjectTreeObject;
 import utils.cloneProjectUtil.projectTreeObjects.Unit;
+import utils.uploadUtil.ConcolicUploadUtil;
+import utils.uploadUtil.NTDUploadUtil;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class Controller implements Initializable {
+public class ConcolicAUTController implements Initializable {
 
     private FileChooser fileChooser = new FileChooser();
     private File choseFile;
@@ -73,7 +74,7 @@ public class Controller implements Initializable {
     private Label executeTimeLabel;
 
     @FXML
-    private Label functionStatementCoverageLabel;
+    private Label sourceCodeCoverageLabel;
 
     @FXML
     private ListView<ConcolicParameterData> generatedTestDataListView;
@@ -91,7 +92,16 @@ public class Controller implements Initializable {
     private Label testCaseIDLabel;
 
     @FXML
-    private Label errorAlertLabel;
+    private Label alertLabel;
+
+    @FXML
+    private Label allTestCasesCoverageLabel;
+
+    @FXML
+    private Label testingTimeLabel;
+
+    @FXML
+    private Label usedMemoryLabel;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -101,6 +111,9 @@ public class Controller implements Initializable {
         coverageChoiceBox.getItems().addAll("Statement coverage", "Branch coverage");
         coverageChoiceBox.setOnAction(this::selectCoverage);
         testCaseDetailVBox.setDisable(true);
+        allTestCasesCoverageLabel.setDisable(true);
+        testingTimeLabel.setDisable(true);
+        usedMemoryLabel.setDisable(true);
 
         testCaseListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<ConcolicTestData>() {
             @Override
@@ -124,24 +137,31 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    void uploadFileButtonClicked(MouseEvent event) throws IOException, InterruptedException {
+    void uploadFileButtonClicked(MouseEvent event) {
         reset();
         try {
+            long startTime = System.nanoTime();
 
-        CloneProjectUtil.deleteFilesInDirectory(FilePath.uploadedProjectPath);
-        UploadUtil.javaUnzipFile(choseFile.getPath(), FilePath.uploadedProjectPath);
+            CloneProjectUtil.deleteFilesInDirectory(FilePath.uploadedProjectPath);
+            NTDUploadUtil.javaUnzipFile(choseFile.getPath(), FilePath.uploadedProjectPath);
 
-        String javaDirPath = CloneProjectUtil.getJavaDirPath(FilePath.uploadedProjectPath);
-        if (javaDirPath.equals("")) throw new RuntimeException("Invalid project");
+            String javaDirPath = CloneProjectUtil.getJavaDirPath(FilePath.uploadedProjectPath);
+            if (javaDirPath.equals("")) throw new RuntimeException("Invalid project");
 
-        Folder folder = CloneProjectUtil.cloneProject(javaDirPath, FilePath.clonedProjectPath);
+            Folder folder = ConcolicUploadUtil.createProjectTree(javaDirPath);
 
-        TreeItem<ProjectTreeObject> rootFolder = switchToTreeItem(folder);
+            long endTime = System.nanoTime();
+            double duration = (endTime - startTime) / 1000000.0;
+            duration = (double) Math.round(duration * 100) / 100;
 
-        projectTreeView.setRoot(rootFolder);
-        errorAlertLabel.setText("");
+            TreeItem<ProjectTreeObject> rootFolder = switchToTreeItem(folder);
+
+            projectTreeView.setRoot(rootFolder);
+            alertLabel.setTextFill(Paint.valueOf("green"));
+            alertLabel.setText("Upload time " + duration + "ms");
         } catch (Exception e) {
-            errorAlertLabel.setText("INVALID PROJECT ZIP FILE (eg: not a zip file, project's source code contains cases we haven't handled, ...)");
+            alertLabel.setTextFill(Paint.valueOf("red"));
+            alertLabel.setText("INVALID PROJECT ZIP FILE (eg: not a zip file, project's source code contains cases we haven't handled, ...)");
         }
     }
 
@@ -150,15 +170,25 @@ public class Controller implements Initializable {
         coverageChoiceBox.setValue("");
         coverageChoiceBox.setDisable(true);
         generateButton.setDisable(true);
-        testCaseListView.getItems().clear();
-        errorAlertLabel.setText("");
+        resetGeneratedTestCasesInfo();
+        alertLabel.setText("");
         resetTestCaseDetailVBox();
+    }
+
+    private void resetGeneratedTestCasesInfo() {
+        testCaseListView.getItems().clear();
+        allTestCasesCoverageLabel.setText("   All test cases coverage:");
+        allTestCasesCoverageLabel.setDisable(true);
+        testingTimeLabel.setText("   Testing time:");
+        testingTimeLabel.setDisable(true);
+        usedMemoryLabel.setText("   Used memory:");
+        usedMemoryLabel.setDisable(true);
     }
 
     private void resetTestCaseDetailVBox() {
         testCaseDetailVBox.setDisable(true);
         testCaseIDLabel.setText("   Test case ID:");
-        functionStatementCoverageLabel.setText("   Function statement coverage:");
+        sourceCodeCoverageLabel.setText("   Source code coverage:");
         requireCoverageLabel.setText("   Required coverage:");
         executeTimeLabel.setText("   Execute time:");
         outputLabel.setText("   Output:");
@@ -224,18 +254,37 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    void generateButtonClicked(MouseEvent event) throws IOException, NoSuchFieldException, ClassNotFoundException, InterruptedException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    void generateButtonClicked(MouseEvent event) {
         resetTestCaseDetailVBox();
+        resetGeneratedTestCasesInfo();
+        alertLabel.setText("");
 
-        ConcolicTestResult result = ConcolicTesting.runFullConcolic(choseUnit.getPath(), choseUnit.getMethodName(), choseUnit.getClassName(), choseCoverage);
+        ConcolicTestResult result;
+        try {
+            result = ConcolicTesting.runFullConcolic(choseUnit.getPath(), choseUnit.getMethodName(), choseUnit.getClassName(), choseCoverage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            alertLabel.setTextFill(Paint.valueOf("red"));
+            alertLabel.setText("Examined unit contains cases we haven't handle yet!");
+            return;
+        }
 
-        testCaseListView.getItems().clear();
+        allTestCasesCoverageLabel.setText("   All test cases coverage: " + result.getFullCoverage() + "%");
+        allTestCasesCoverageLabel.setDisable(false);
+
+        testingTimeLabel.setText("   Testing time: " + result.getTestingTime() + "ms");
+        testingTimeLabel.setDisable(false);
+
+        usedMemoryLabel.setText("   Used memory: " + result.getUsedMemory() + "MB");
+        usedMemoryLabel.setDisable(false);
+
+
         testCaseListView.getItems().addAll(result.getFullTestData());
     }
 
     private void setTestCaseDetail(ConcolicTestData testData) {
         testCaseIDLabel.setText("   Test case ID: " + testData.getTestCaseID());
-        functionStatementCoverageLabel.setText("   Function statement coverage: " + testData.getFunctionCoverage());
+        sourceCodeCoverageLabel.setText("   Source code coverage: " + testData.getSourceCodeCoverage());
         requireCoverageLabel.setText("   Required coverage: " + testData.getRequiredCoverage());
         executeTimeLabel.setText("   Execute time: " + testData.getExecuteTime());
         outputLabel.setText("   Output: " + testData.getOutput());

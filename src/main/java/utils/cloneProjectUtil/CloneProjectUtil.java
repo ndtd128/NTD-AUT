@@ -57,7 +57,8 @@ public final class CloneProjectUtil {
         System.out.println(p.waitFor());
 
         if(p.waitFor() != 0) {
-            throw new RuntimeException("Can't clone project");
+            System.out.println("Can't compile project");
+            throw new RuntimeException("Can't compile project");
         }
 
         return rootFolder;
@@ -166,18 +167,20 @@ public final class CloneProjectUtil {
         }
         result.append("import java.io.FileWriter;\n");
 
-        final ClassData[] classDataArr = {new ClassData()};
+//        final ClassData[] classDataArr = {new ClassData()};
+        List<ClassData> classDataArr = new ArrayList<>();
         ASTVisitor classVisitor = new ASTVisitor() {
             @Override
             public boolean visit(TypeDeclaration node) {
-                classDataArr[0] = new ClassData(node);
+//                classDataArr[0] = new ClassData(node);
+                classDataArr.add(new ClassData(node));
                 return true;
             }
         };
         compilationUnit.accept(classVisitor);
 
         // Class type (interface/class) and class name
-        ClassData classData = classDataArr[0];
+        ClassData classData = classDataArr.get(0);
 
         result.append("public ").append(classData.getTypeOfClass()).append(" ").append(classData.getClassName());
 
@@ -199,6 +202,8 @@ public final class CloneProjectUtil {
         }
 
         result.append(" {\n");
+
+        result.append(classData.getFields());
 
         result.append("private static void writeDataToFile(String data, String path, boolean append) {\n" +
                 "try {\n" +
@@ -224,9 +229,9 @@ public final class CloneProjectUtil {
             @Override
             public boolean visit(TypeDeclaration node) {
                 for (MethodDeclaration method : node.getMethods()) {
-                    if (!method.isConstructor()) {
+//                    if (!method.isConstructor()) {
                         methods.add(method);
-                    }
+//                    }
                 }
                 return true;
             }
@@ -266,19 +271,31 @@ public final class CloneProjectUtil {
         } else {
             throw new RuntimeException("Invalid Coverage");
         }
-        return "public static final int ".concat(result.toString().replace(" ", "").replace(".", "").concat(" = " + totalStatement + ";\n"));
+        return "public static final int ".concat(reformatVariableName(result.toString())).concat(" = " + totalStatement + ";\n");
+    }
+
+    private static String reformatVariableName(String name) {
+        return name.replace(" ", "").replace(".", "")
+                .replace("[", "").replace("]", "")
+                .replace("<", "").replace(">", "")
+                .replace(",", "");
     }
 
     private static String createTotalClassStatementVariable(ClassData classData) {
         StringBuilder result = new StringBuilder();
         result.append(classData.getClassName()).append("TotalStatement");
-        return "public static final int ".concat(result.toString().replace(" ", "").replace(".", "").concat(" = " + totalClassStatement + ";\n"));
+        return "public static final int ".concat(reformatVariableName(result.toString())).concat(" = " + totalClassStatement + ";\n");
     }
 
     private static String createCloneMethod(MethodDeclaration method) {
         StringBuilder cloneMethod = new StringBuilder();
 
-        cloneMethod.append("public static ").append(method.getReturnType2()).append(" ").append(method.getName()).append("(");
+        List<ASTNode> modifiers = method.modifiers();
+        for(ASTNode modifier : modifiers) {
+            cloneMethod.append(modifier).append(" ");
+        }
+
+        cloneMethod.append(method.getReturnType2() != null ? method.getReturnType2() : "").append(" ").append(method.getName()).append("(");
         List<ASTNode> parameters = method.parameters();
         for (int i = 0; i < parameters.size(); i++) {
             cloneMethod.append(parameters.get(i));
