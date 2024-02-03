@@ -25,8 +25,6 @@ import utils.autoUnitTestUtil.testDriver.TestDriverRunner;
 import utils.autoUnitTestUtil.utils.Utils;
 import utils.uploadUtil.ConcolicUploadUtil;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -38,15 +36,12 @@ import java.util.TimerTask;
 
 public class ConcolicTesting {
     private static CompilationUnit compilationUnit;
-    private static String simpleClassName;
-    private static String fullyClonedClassName;
     private static ArrayList<ASTNode> funcAstNodeList;
     private static CfgNode cfgBeginNode;
     private static CfgEndBlockNode cfgEndNode;
     private static List<ASTNode> parameters;
     private static Class<?>[] parameterClasses;
     private static List<String> parameterNames;
-    private static Method method;
     private static ASTNode testFunc;
     private static String classKey;
 
@@ -169,7 +164,6 @@ public class ConcolicTesting {
         funcAstNodeList = ProjectParser.parseFile(path);
         compilationUnit = ProjectParser.parseFileToCompilationUnit(path);
         classKey = (compilationUnit.getPackage() != null ? compilationUnit.getPackage().getName().toString() : "") + className.replace(".java", "") + "totalStatement";
-        setupFullyClonedClassName(className);
         setUpTestFunc(methodName);
         MarkedPath.resetFullTestSuiteCoveredStatements();
     }
@@ -220,17 +214,7 @@ public class ConcolicTesting {
         parameters = ((MethodDeclaration) testFunc).parameters();
         parameterClasses = utils.autoUnitTestUtil.testDriver.Utils.getParameterClasses(parameters);
         parameterNames = utils.autoUnitTestUtil.testDriver.Utils.getParameterNames(parameters);
-        method = Class.forName(fullyClonedClassName).getDeclaredMethod(methodName, parameterClasses);
-    }
-
-    private static void setupFullyClonedClassName(String className) {
-        className = className.replace(".java", "");
-        simpleClassName = className;
-        String packetName = "";
-        if (compilationUnit.getPackage() != null) {
-            packetName = compilationUnit.getPackage().getName() + ".";
-        }
-        fullyClonedClassName = "clonedProject." + packetName + className;
+//        method = Class.forName(fullyClonedClassName).getDeclaredMethod(methodName, parameterClasses);
     }
 
     private static void setupCfgTree(ConcolicAUTController.Coverage coverage) {

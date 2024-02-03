@@ -13,10 +13,6 @@ import java.util.Set;
 public final class MarkedPath {
 
     private static List<MarkedStatement> markedStatements = new ArrayList<>();
-//    private static int totalCoveredStatement;
-//    private static int totalCoveredBranch;
-//    private static Set<String> fullTestSuiteCoveredStatements;
-
     private static Set<CoveredStatement> fullTestSuiteCoveredStatements;
     private static Set<CoveredStatement> totalCoveredStatement;
     private static Set<CoveredStatement> totalCoveredBranch;

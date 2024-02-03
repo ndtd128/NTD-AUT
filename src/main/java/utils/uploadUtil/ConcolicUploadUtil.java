@@ -224,6 +224,7 @@ public final class ConcolicUploadUtil {
     }
 
     private static void generateForIfStatement(IfStatement ifStatement) {
+        generateForCondition(ifStatement.getExpression());
         generateForOneStatement(ifStatement.getThenStatement(), ";");
         generateForOneStatement(ifStatement.getElseStatement(), ";");
     }
