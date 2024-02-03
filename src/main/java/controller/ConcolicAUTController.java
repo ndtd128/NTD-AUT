@@ -263,7 +263,6 @@ public class ConcolicAUTController implements Initializable {
         try {
             result = ConcolicTesting.runFullConcolic(choseUnit.getPath(), choseUnit.getMethodName(), choseUnit.getClassName(), choseCoverage);
         } catch (Exception e) {
-            e.printStackTrace();
             alertLabel.setTextFill(Paint.valueOf("red"));
             alertLabel.setText("Examined unit contains cases we haven't handle yet!");
             return;
